@@ -1,0 +1,361 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.25rem;
+
+    /* pastel retro palette — warm cream base */
+    --background: 0.96 0.012 75;
+    --foreground: 0.22 0.02 270;
+    --card: 0.98 0.008 75;
+    --card-foreground: 0.22 0.02 270;
+    --popover: 0.97 0.010 75;
+    --popover-foreground: 0.22 0.02 270;
+    --primary: 0.62 0.18 350;
+    --primary-foreground: 0.98 0 0;
+    --secondary: 0.92 0.025 300;
+    --secondary-foreground: 0.28 0.04 300;
+    --muted: 0.90 0.018 75;
+    --muted-foreground: 0.52 0.04 270;
+    --accent: 0.82 0.12 300;
+    --accent-foreground: 0.22 0.04 300;
+    --destructive: 0.65 0.22 25;
+    --destructive-foreground: 0.98 0 0;
+    --border: 0.82 0.04 75;
+    --input: 0.88 0.025 75;
+    --ring: 0.62 0.18 350;
+
+    /* pastel accents (raw OKLCH values) */
+    --pastel-rose: 0.80 0.12 350;
+    --pastel-lavender: 0.76 0.12 300;
+    --pastel-mint: 0.80 0.10 162;
+    --pastel-peach: 0.84 0.10 60;
+
+    --chart-1: 0.80 0.12 350;
+    --chart-2: 0.76 0.12 300;
+    --chart-3: 0.80 0.10 162;
+    --chart-4: 0.84 0.10 60;
+    --chart-5: 0.78 0.12 200;
+
+    --sidebar: 0.95 0.012 75;
+    --sidebar-foreground: 0.22 0.02 270;
+    --sidebar-primary: 0.62 0.18 350;
+    --sidebar-primary-foreground: 0.98 0 0;
+    --sidebar-accent: 0.90 0.025 300;
+    --sidebar-accent-foreground: 0.28 0.04 300;
+    --sidebar-border: 0.82 0.04 75;
+    --sidebar-ring: 0.62 0.18 350;
+  }
+
+  * {
+    @apply border-border;
+    text-transform: lowercase;
+  }
+
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Courier Prime', 'Courier New', 'Lucida Console', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+    background-color: oklch(0.96 0.012 75);
+  }
+
+  /* subtle warm paper texture */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(180, 140, 120, 0.04) 3px,
+      rgba(180, 140, 120, 0.04) 6px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* soft grain overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: 9998;
+    animation: grain 0.5s steps(1) infinite;
+  }
+
+  @keyframes grain {
+    0%, 100% { transform: translate(0, 0); }
+    10% { transform: translate(-5%, -5%); }
+    20% { transform: translate(-10%, 5%); }
+    30% { transform: translate(5%, -10%); }
+    40% { transform: translate(-5%, 15%); }
+    50% { transform: translate(-10%, 5%); }
+    60% { transform: translate(15%, 0); }
+    70% { transform: translate(0, 10%); }
+    80% { transform: translate(-15%, 0); }
+    90% { transform: translate(10%, 5%); }
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Courier New', 'Lucida Console', monospace;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer components {
+  .pastel-text-rose {
+    color: oklch(var(--pastel-rose));
+  }
+
+  .pastel-text-lavender {
+    color: oklch(var(--pastel-lavender));
+  }
+
+  .pastel-text-mint {
+    color: oklch(var(--pastel-mint));
+  }
+
+  /* Keep neon-text-pink as alias for pastel-text-rose for compatibility */
+  .neon-text-pink {
+    color: oklch(var(--pastel-rose));
+  }
+
+  .neon-text-cyan {
+    color: oklch(var(--pastel-mint));
+  }
+
+  .neon-text-purple {
+    color: oklch(var(--pastel-lavender));
+  }
+
+  .retro-input {
+    background: oklch(0.99 0.005 75);
+    border: 1.5px solid oklch(0.78 0.06 75);
+    color: oklch(var(--foreground));
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    padding: 0.6rem 0.9rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    width: 100%;
+    text-transform: lowercase;
+    border-radius: 2px;
+  }
+
+  .retro-input:focus {
+    border-color: oklch(var(--pastel-rose));
+    box-shadow:
+      0 0 0 3px oklch(var(--pastel-rose) / 0.15);
+  }
+
+  .retro-input::placeholder {
+    color: oklch(0.68 0.03 270);
+    text-transform: lowercase;
+  }
+
+  .retro-button-primary {
+    background: oklch(var(--pastel-rose) / 0.12);
+    border: 1.5px solid oklch(var(--pastel-rose));
+    color: oklch(0.42 0.14 350);
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.05em;
+    padding: 0.75rem 2rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: lowercase;
+    position: relative;
+    overflow: hidden;
+    border-radius: 2px;
+  }
+
+  .retro-button-primary:hover {
+    background: oklch(var(--pastel-rose) / 0.22);
+    box-shadow: 0 2px 12px oklch(var(--pastel-rose) / 0.3);
+    transform: translateY(-1px);
+  }
+
+  .message-tile {
+    cursor: pointer;
+    padding: 1.25rem;
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    break-inside: avoid;
+    border: 1px solid rgba(255,255,255,0.35);
+  }
+
+  .message-tile:hover {
+    transform: translateY(-3px) scale(1.01);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  }
+
+  .message-tile::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(0, 0, 0, 0.025) 3px,
+      rgba(0, 0, 0, 0.025) 6px
+    );
+    pointer-events: none;
+  }
+
+  .message-tile .tile-to {
+    font-family: 'Courier New', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: lowercase;
+    margin-bottom: 0.5rem;
+    opacity: 0.75;
+  }
+
+  .message-tile .tile-message {
+    font-family: 'Courier New', monospace;
+    font-size: 0.83rem;
+    line-height: 1.55;
+    text-transform: lowercase;
+    margin-bottom: 0.75rem;
+  }
+
+  .message-tile .tile-song {
+    font-family: 'Courier New', monospace;
+    font-size: 0.70rem;
+    letter-spacing: 0.04em;
+    text-transform: lowercase;
+    opacity: 0.70;
+    font-style: italic;
+  }
+
+  .cassette-wrapper {
+    position: relative;
+    display: inline-block;
+  }
+
+  .cassette-wrapper::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 110%;
+    height: 110%;
+    background: radial-gradient(
+      ellipse at center,
+      oklch(var(--pastel-rose) / 0.15) 0%,
+      oklch(var(--pastel-lavender) / 0.08) 50%,
+      transparent 70%
+    );
+    pointer-events: none;
+    animation: pulse-glow 4s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+    50% { opacity: 1; transform: translate(-50%, -50%) scale(1.04); }
+  }
+
+  .vhs-title {
+    font-family: 'Courier New', 'Lucida Console', monospace;
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    text-transform: lowercase;
+    line-height: 0.95;
+  }
+
+  .tagline {
+    font-family: 'Courier New', monospace;
+    font-size: clamp(1rem, 2vw, 1.3rem);
+    letter-spacing: 0.06em;
+    text-transform: lowercase;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: oklch(0.94 0.01 75);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: oklch(var(--pastel-rose) / 0.5);
+    border-radius: 2px;
+  }
+
+  /* Color swatch */
+  .color-swatch {
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .color-swatch:hover {
+    transform: scale(1.15);
+  }
+
+  .color-swatch.selected {
+    border-color: oklch(0.30 0.04 270);
+    box-shadow: 0 0 0 2px oklch(var(--pastel-rose) / 0.6);
+    transform: scale(1.1);
+  }
+
+  /* Modal overlay */
+  .modal-backdrop {
+    background: oklch(0.92 0.01 75 / 0.80);
+    backdrop-filter: blur(6px);
+  }
+
+  /* Animate flicker for title */
+  @keyframes flicker {
+    0%, 96%, 100% { opacity: 1; }
+    97% { opacity: 0.85; }
+    98% { opacity: 1; }
+    99% { opacity: 0.9; }
+  }
+
+  .animate-flicker {
+    animation: flicker 6s ease-in-out infinite;
+  }
+
+  /* Cassette float animation */
+  @keyframes float-up {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .animate-float-up {
+    animation: float-up 3.5s ease-in-out infinite;
+  }
+}

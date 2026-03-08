@@ -12,11 +12,13 @@ export interface Message {
     to: string;
     color: string;
     song: string;
+    isPrivate: boolean;
     message: string;
     timestamp: bigint;
+    isSeeded: boolean;
 }
 export interface backendInterface {
     getMessages(): Promise<Array<Message>>;
     searchMessages(queryString: string): Promise<Array<Message>>;
-    submitMessage(to: string, message: string, song: string, color: string): Promise<bigint>;
+    submitMessage(to: string, message: string, song: string, color: string, isPrivate: boolean): Promise<bigint>;
 }

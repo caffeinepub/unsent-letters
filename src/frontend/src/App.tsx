@@ -1,8 +1,9 @@
 import { Toaster } from "@/components/ui/sonner";
-import { Mail, Moon, Music, Search, Sun, X } from "lucide-react";
+import { Lock, Mail, Moon, Music, Search, Sun, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useActor } from "./hooks/useActor";
 
 // ─── types ────────────────────────────────────────────────────────────────────
 
@@ -13,84 +14,9 @@ type Message = {
   song: string;
   color: string;
   timestamp: number;
+  isPrivate: boolean;
+  isSeeded: boolean;
 };
-
-// ─── seed data ────────────────────────────────────────────────────────────────
-
-const SEED_MESSAGES: Message[] = [
-  {
-    id: 1,
-    to: "sarah",
-    message:
-      "i never told you how much your laugh meant to me. i still hear it sometimes when the world gets too quiet.",
-    song: "the night we met - lord huron",
-    color: "#c9b8e8",
-    timestamp: Date.now() - 86400000 * 5,
-  },
-  {
-    id: 2,
-    to: "marco",
-    message:
-      "i should have stayed. i was scared and i left and i've regretted it every single day since.",
-    song: "someone like you - adele",
-    color: "#f4b8c8",
-    timestamp: Date.now() - 86400000 * 12,
-  },
-  {
-    id: 3,
-    to: "grandpa joe",
-    message:
-      "you taught me how to be brave. i just wish i had said thank you before it was too late.",
-    song: "fix you - coldplay",
-    color: "#b8d4f4",
-    timestamp: Date.now() - 86400000 * 20,
-  },
-  {
-    id: 4,
-    to: "mochi",
-    message:
-      "you were the best dog. the house is so quiet without you. i hope wherever you are, there are endless fields.",
-    song: "fast car - tracy chapman",
-    color: "#b8e8c9",
-    timestamp: Date.now() - 86400000 * 3,
-  },
-  {
-    id: 5,
-    to: "jess",
-    message:
-      "you were my best friend. i don't know what went wrong between us. i miss you more than i miss any lover i've ever had.",
-    song: "back to december - taylor swift",
-    color: "#f4d4b8",
-    timestamp: Date.now() - 86400000 * 8,
-  },
-  {
-    id: 6,
-    to: "mom",
-    message:
-      "i know we didn't always see eye to eye. but i want you to know — you did your best and i see that now.",
-    song: "the scientist - coldplay",
-    color: "#e8d4b8",
-    timestamp: Date.now() - 86400000 * 1,
-  },
-  {
-    id: 7,
-    to: "alex",
-    message:
-      "we were 17 and the whole world felt like ours. i hope you still feel that way sometimes.",
-    song: "golden hour - kacey musgraves",
-    color: "#f4b8e4",
-    timestamp: Date.now() - 86400000 * 30,
-  },
-  {
-    id: 8,
-    to: "myself",
-    message:
-      "you survived. you're still here. that's enough. that will always be enough.",
-    song: "three little birds - bob marley",
-    color: "#b8e8e4",
-    timestamp: Date.now() - 86400000 * 2,
-  },
-];
 
 // ─── color presets ────────────────────────────────────────────────────────────
 
@@ -132,31 +58,48 @@ function timeAgo(ts: number): string {
 
 // ─── compose modal ────────────────────────────────────────────────────────────
 
+type ComposeData = Omit<Message, "id" | "timestamp" | "isSeeded">;
+
 interface ComposeModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (msg: Omit<Message, "id" | "timestamp">) => void;
+  onSubmit: (msg: ComposeData) => void;
+  submitting?: boolean;
 }
 
-function ComposeModal({ open, onClose, onSubmit }: ComposeModalProps) {
+function ComposeModal({
+  open,
+  onClose,
+  onSubmit,
+  submitting = false,
+}: ComposeModalProps) {
   const [to, setTo] = useState("");
   const [message, setMessage] = useState("");
   const [song, setSong] = useState("");
   const [color, setColor] = useState(COLOR_PRESETS[0]);
+  const [isPrivate, setIsPrivate] = useState(false);
+
+  // reset form when modal opens
+  useEffect(() => {
+    if (open) {
+      setTo("");
+      setMessage("");
+      setSong("");
+      setColor(COLOR_PRESETS[0]);
+      setIsPrivate(false);
+    }
+  }, [open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!to.trim() || !message.trim()) return;
+    if (!to.trim() || !message.trim() || submitting) return;
     onSubmit({
       to: to.trim(),
       message: message.trim(),
       song: song.trim(),
       color,
+      isPrivate,
     });
-    setTo("");
-    setMessage("");
-    setSong("");
-    setColor(COLOR_PRESETS[0]);
   };
 
   return (
@@ -173,7 +116,7 @@ function ComposeModal({ open, onClose, onSubmit }: ComposeModalProps) {
         >
           <motion.div
             data-ocid="compose.dialog"
-            className="relative w-full max-w-lg border border-border bg-background p-6 md:p-8"
+            className="relative w-full max-w-lg border border-border bg-background p-6 md:p-8 overflow-y-auto max-h-[90vh]"
             style={{
               boxShadow:
                 "0 4px 40px oklch(0.80_0.12_350 / 0.12), 0 2px 12px rgba(0,0,0,0.08)",
@@ -190,6 +133,7 @@ function ComposeModal({ open, onClose, onSubmit }: ComposeModalProps) {
               </h2>
               <button
                 type="button"
+                data-ocid="compose.close_button"
                 onClick={onClose}
                 className="text-muted-foreground hover:text-foreground transition-colors p-1"
                 aria-label="close"
@@ -295,13 +239,58 @@ function ComposeModal({ open, onClose, onSubmit }: ComposeModalProps) {
                 </div>
               </div>
 
+              {/* privacy toggle */}
+              <div className="border border-border/50 rounded-sm p-3 bg-muted/30">
+                <label
+                  htmlFor="compose-private"
+                  className="flex items-start gap-3 cursor-pointer"
+                >
+                  <div className="relative mt-0.5">
+                    <input
+                      id="compose-private"
+                      data-ocid="compose.private.toggle"
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={isPrivate}
+                      onChange={(e) => setIsPrivate(e.target.checked)}
+                    />
+                    {/* custom styled toggle */}
+                    <div
+                      className={`w-9 h-5 rounded-full border transition-all duration-200 flex items-center ${
+                        isPrivate
+                          ? "bg-[#c9b8e8] border-[#c9b8e8]"
+                          : "bg-transparent border-border"
+                      }`}
+                    >
+                      <div
+                        className={`w-3.5 h-3.5 rounded-full transition-all duration-200 mx-0.5 ${
+                          isPrivate
+                            ? "translate-x-4 bg-white"
+                            : "translate-x-0 bg-muted-foreground/50"
+                        }`}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-1.5 text-xs text-foreground/80 tracking-widest">
+                      <Lock size={10} className="text-muted-foreground" />
+                      make this letter private
+                    </div>
+                    <p className="text-xs text-muted-foreground/60 mt-0.5 leading-relaxed">
+                      only visible when someone searches your name exactly
+                    </p>
+                  </div>
+                </label>
+              </div>
+
               {/* submit */}
               <button
                 data-ocid="compose.submit_button"
                 type="submit"
-                className="retro-button-primary w-full mt-2"
+                disabled={submitting}
+                className="retro-button-primary w-full mt-2 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                send it into the void
+                {submitting ? "sending…" : "send it into the void"}
               </button>
             </form>
           </motion.div>
@@ -370,12 +359,32 @@ function DetailModal({ message, onClose }: DetailModalProps) {
                 <X size={18} />
               </button>
 
+              {/* private indicator */}
+              {message.isPrivate && (
+                <div
+                  className="absolute top-4 left-4 flex items-center gap-1 text-xs opacity-60"
+                  style={{ color: textColor }}
+                >
+                  <Lock size={10} />
+                  <span
+                    style={{
+                      fontFamily: "'Courier New', monospace",
+                      fontSize: "0.65rem",
+                      letterSpacing: "0.08em",
+                    }}
+                  >
+                    private
+                  </span>
+                </div>
+              )}
+
               {/* to */}
               <p
                 className="text-xs font-bold tracking-widest mb-4 opacity-70"
                 style={{
                   color: textColor,
                   fontFamily: "'Courier New', monospace",
+                  marginTop: message.isPrivate ? "1.5rem" : "0",
                 }}
               >
                 to:
@@ -467,7 +476,7 @@ function MessageTile({ message, index, onClick }: TileProps) {
   return (
     <motion.div
       data-ocid={`messages.item.${index}`}
-      className="message-tile"
+      className="message-tile relative"
       style={{
         backgroundColor: message.color,
         color: textColor,
@@ -482,6 +491,17 @@ function MessageTile({ message, index, onClick }: TileProps) {
         boxShadow: `0 8px 30px ${message.color}50, 0 4px 12px rgba(0,0,0,0.5)`,
       }}
     >
+      {/* private lock indicator */}
+      {message.isPrivate && (
+        <div
+          className="absolute top-2 right-2"
+          style={{ color: textColor, opacity: 0.6 }}
+          title="private letter"
+        >
+          <Lock size={10} />
+        </div>
+      )}
+
       <div className="tile-to" style={{ color: textColor }}>
         to: {message.to}
       </div>
@@ -501,14 +521,101 @@ function MessageTile({ message, index, onClick }: TileProps) {
   );
 }
 
+// ─── mapper (module-level, stable reference) ──────────────────────────────────
+
+function mapMessage(m: {
+  id: bigint;
+  to: string;
+  message: string;
+  song: string;
+  color: string;
+  timestamp: bigint;
+  isPrivate: boolean;
+  isSeeded: boolean;
+}): Message {
+  return {
+    id: Number(m.id),
+    to: m.to,
+    message: m.message,
+    song: m.song,
+    color: m.color,
+    timestamp: Number(m.timestamp) / 1_000_000,
+    isPrivate: Boolean(m.isPrivate),
+    isSeeded: Boolean(m.isSeeded),
+  };
+}
+
 // ─── main app ─────────────────────────────────────────────────────────────────
 
 export default function App() {
-  const [messages, setMessages] = useState<Message[]>(SEED_MESSAGES);
+  const { actor, isFetching: actorFetching } = useActor();
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [searchResults, setSearchResults] = useState<Message[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [search, setSearch] = useState("");
   const [composeOpen, setComposeOpen] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [darkMode, setDarkMode] = useState(false);
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const fetchMessages = useCallback(async () => {
+    if (!actor) return;
+    try {
+      setLoadError(false);
+      const raw = await actor.getMessages();
+      const mapped: Message[] = raw.map(mapMessage);
+      // most recent first
+      mapped.sort((a, b) => b.timestamp - a.timestamp);
+      setMessages(mapped);
+    } catch {
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
+  }, [actor]);
+
+  // debounced search via backend
+  const runSearch = useCallback(
+    async (query: string) => {
+      if (!actor) return;
+      if (!query.trim()) {
+        setSearchResults(null);
+        return;
+      }
+      try {
+        const raw = await actor.searchMessages(query.trim());
+        const mapped: Message[] = raw.map(mapMessage);
+        mapped.sort((a, b) => b.timestamp - a.timestamp);
+        setSearchResults(mapped);
+      } catch {
+        setSearchResults([]);
+      }
+    },
+    [actor],
+  );
+
+  useEffect(() => {
+    if (actor && !actorFetching) {
+      fetchMessages();
+    }
+  }, [actor, actorFetching, fetchMessages]);
+
+  // debounce search
+  useEffect(() => {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    if (!search.trim()) {
+      setSearchResults(null);
+      return;
+    }
+    searchDebounceRef.current = setTimeout(() => {
+      runSearch(search);
+    }, 300);
+    return () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    };
+  }, [search, runSearch]);
 
   useEffect(() => {
     if (darkMode) {
@@ -518,27 +625,38 @@ export default function App() {
     }
   }, [darkMode]);
 
-  const filtered = useMemo(() => {
-    if (!search.trim()) return messages;
-    const q = search.trim().toLowerCase();
-    return messages.filter(
-      (m) =>
-        m.to.toLowerCase().includes(q) || m.message.toLowerCase().includes(q),
-    );
-  }, [messages, search]);
+  // displayed letters: search results when searching, otherwise all public messages
+  const displayed = useMemo(() => {
+    if (search.trim() && searchResults !== null) return searchResults;
+    return messages;
+  }, [search, searchResults, messages]);
 
-  const handleSubmit = (data: Omit<Message, "id" | "timestamp">) => {
-    const newMsg: Message = {
-      ...data,
-      id: Date.now(),
-      timestamp: Date.now(),
-    };
-    setMessages((prev) => [newMsg, ...prev]);
-    setComposeOpen(false);
-    toast("your letter has been sent.", {
-      description: `to: ${data.to}`,
-      duration: 4000,
-    });
+  const handleSubmit = async (data: ComposeData) => {
+    if (!actor) return;
+    setSubmitting(true);
+    try {
+      await actor.submitMessage(
+        data.to,
+        data.message,
+        data.song,
+        data.color,
+        data.isPrivate,
+      );
+      setComposeOpen(false);
+      toast("your letter has been sent.", {
+        description: data.isPrivate
+          ? `to: ${data.to} · private`
+          : `to: ${data.to}`,
+        duration: 4000,
+      });
+      await fetchMessages();
+    } catch {
+      toast.error("something went wrong. please try again.", {
+        duration: 4000,
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const currentYear = new Date().getFullYear();
@@ -673,12 +791,47 @@ export default function App() {
 
         {/* message collage */}
         <section className="max-w-6xl mx-auto px-4 pb-28">
+          {/* loading state */}
+          {loading && (
+            <motion.div
+              data-ocid="messages.loading_state"
+              className="text-center py-20"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <p className="text-sm text-muted-foreground/70 tracking-widest animate-pulse">
+                loading letters…
+              </p>
+            </motion.div>
+          )}
+
+          {/* error state */}
+          {!loading && loadError && (
+            <motion.div
+              data-ocid="messages.error_state"
+              className="text-center py-20"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <p className="text-sm text-muted-foreground">
+                couldn't load letters right now.
+              </p>
+              <button
+                type="button"
+                onClick={fetchMessages}
+                className="mt-4 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors"
+              >
+                try again
+              </button>
+            </motion.div>
+          )}
+
           {/* section header */}
-          {search && (
+          {!loading && !loadError && search && (
             <div className="mb-6 text-sm text-muted-foreground">
-              {filtered.length > 0 ? (
+              {displayed.length > 0 ? (
                 <span>
-                  {filtered.length} letter{filtered.length !== 1 ? "s" : ""}{" "}
+                  {displayed.length} letter{displayed.length !== 1 ? "s" : ""}{" "}
                   addressed to{" "}
                   <span className="neon-text-pink">"{search}"</span>
                 </span>
@@ -687,7 +840,7 @@ export default function App() {
           )}
 
           {/* empty state */}
-          {filtered.length === 0 && (
+          {!loading && !loadError && displayed.length === 0 && (
             <motion.div
               data-ocid="messages.empty_state"
               className="text-center py-20"
@@ -695,27 +848,39 @@ export default function App() {
               animate={{ opacity: 1 }}
             >
               <p className="text-4xl mb-4 opacity-40" />
-              <p className="text-muted-foreground text-sm">
-                no letters found for{" "}
-                <span className="neon-text-pink">"{search}"</span>
-              </p>
-              <p className="text-muted-foreground text-xs mt-2 opacity-60">
-                maybe yours hasn't been sent yet.
-              </p>
+              {search ? (
+                <>
+                  <p className="text-muted-foreground text-sm">
+                    no letters found for{" "}
+                    <span className="neon-text-pink">"{search}"</span>
+                  </p>
+                  <p className="text-muted-foreground text-xs mt-2 opacity-60">
+                    maybe yours hasn't been sent yet.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-muted-foreground text-sm">
+                    no letters yet. be the first to send one.
+                  </p>
+                  <p className="text-muted-foreground text-xs mt-2 opacity-60">
+                    your words will live here, forever unsent.
+                  </p>
+                </>
+              )}
             </motion.div>
           )}
 
           {/* masonry-ish grid */}
-          {filtered.length > 0 && (
+          {!loading && !loadError && displayed.length > 0 && (
             <div
               style={{
                 columns: "var(--cols, 2)",
                 columnGap: "1rem",
-                // responsive via inline style trick
               }}
               className="[--cols:1] sm:[--cols:2] md:[--cols:3] lg:[--cols:4]"
             >
-              {filtered.map((msg, i) => (
+              {displayed.map((msg, i) => (
                 <div
                   key={msg.id}
                   style={{ marginBottom: "1rem", breakInside: "avoid" }}
@@ -767,6 +932,7 @@ export default function App() {
         open={composeOpen}
         onClose={() => setComposeOpen(false)}
         onSubmit={handleSubmit}
+        submitting={submitting}
       />
 
       <DetailModal

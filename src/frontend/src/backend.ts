@@ -94,13 +94,15 @@ export interface Message {
     to: string;
     color: string;
     song: string;
+    isPrivate: boolean;
     message: string;
     timestamp: bigint;
+    isSeeded: boolean;
 }
 export interface backendInterface {
     getMessages(): Promise<Array<Message>>;
     searchMessages(queryString: string): Promise<Array<Message>>;
-    submitMessage(to: string, message: string, song: string, color: string): Promise<bigint>;
+    submitMessage(to: string, message: string, song: string, color: string, isPrivate: boolean): Promise<bigint>;
 }
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
@@ -132,17 +134,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async submitMessage(arg0: string, arg1: string, arg2: string, arg3: string): Promise<bigint> {
+    async submitMessage(arg0: string, arg1: string, arg2: string, arg3: string, arg4: boolean): Promise<bigint> {
         if (this.processError) {
             try {
-                const result = await this.actor.submitMessage(arg0, arg1, arg2, arg3);
+                const result = await this.actor.submitMessage(arg0, arg1, arg2, arg3, arg4);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.submitMessage(arg0, arg1, arg2, arg3);
+            const result = await this.actor.submitMessage(arg0, arg1, arg2, arg3, arg4);
             return result;
         }
     }

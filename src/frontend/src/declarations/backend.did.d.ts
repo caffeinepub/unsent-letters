@@ -15,13 +15,18 @@ export interface Message {
   'to' : string,
   'color' : string,
   'song' : string,
+  'isPrivate' : boolean,
   'message' : string,
   'timestamp' : bigint,
+  'isSeeded' : boolean,
 }
 export interface _SERVICE {
   'getMessages' : ActorMethod<[], Array<Message>>,
   'searchMessages' : ActorMethod<[string], Array<Message>>,
-  'submitMessage' : ActorMethod<[string, string, string, string], bigint>,
+  'submitMessage' : ActorMethod<
+    [string, string, string, string, boolean],
+    bigint
+  >,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

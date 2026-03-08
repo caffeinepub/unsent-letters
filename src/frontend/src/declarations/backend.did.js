@@ -13,15 +13,17 @@ export const Message = IDL.Record({
   'to' : IDL.Text,
   'color' : IDL.Text,
   'song' : IDL.Text,
+  'isPrivate' : IDL.Bool,
   'message' : IDL.Text,
   'timestamp' : IDL.Int,
+  'isSeeded' : IDL.Bool,
 });
 
 export const idlService = IDL.Service({
   'getMessages' : IDL.Func([], [IDL.Vec(Message)], ['query']),
   'searchMessages' : IDL.Func([IDL.Text], [IDL.Vec(Message)], ['query']),
   'submitMessage' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Bool],
       [IDL.Nat],
       [],
     ),
@@ -35,15 +37,17 @@ export const idlFactory = ({ IDL }) => {
     'to' : IDL.Text,
     'color' : IDL.Text,
     'song' : IDL.Text,
+    'isPrivate' : IDL.Bool,
     'message' : IDL.Text,
     'timestamp' : IDL.Int,
+    'isSeeded' : IDL.Bool,
   });
   
   return IDL.Service({
     'getMessages' : IDL.Func([], [IDL.Vec(Message)], ['query']),
     'searchMessages' : IDL.Func([IDL.Text], [IDL.Vec(Message)], ['query']),
     'submitMessage' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Bool],
         [IDL.Nat],
         [],
       ),

@@ -610,7 +610,7 @@ export default function App() {
             aria-label="open compose — write a letter"
           >
             <motion.img
-              src="/assets/uploads/jpg-1"
+              src="/assets/uploads/cassette.jpg"
               alt="retro cassette tape"
               className="w-full max-w-sm md:max-w-md mx-auto drop-shadow-2xl"
               style={{
@@ -742,6 +742,7 @@ export default function App() {
             caffeine.ai
           </a>
         </p>
+        <p className="text-xs text-muted-foreground/40 mt-1">by azi</p>
       </footer>
 
       {/* modals */}

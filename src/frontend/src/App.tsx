@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
-import { Mail, Music, Search, X } from "lucide-react";
+import { Mail, Moon, Music, Search, Sun, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 // ─── types ────────────────────────────────────────────────────────────────────
@@ -173,7 +173,7 @@ function ComposeModal({ open, onClose, onSubmit }: ComposeModalProps) {
         >
           <motion.div
             data-ocid="compose.dialog"
-            className="relative w-full max-w-lg border border-[oklch(0.78_0.06_75)] bg-[oklch(0.98_0.008_75)] p-6 md:p-8"
+            className="relative w-full max-w-lg border border-border bg-background p-6 md:p-8"
             style={{
               boxShadow:
                 "0 4px 40px oklch(0.80_0.12_350 / 0.12), 0 2px 12px rgba(0,0,0,0.08)",
@@ -508,6 +508,15 @@ export default function App() {
   const [search, setSearch] = useState("");
   const [composeOpen, setComposeOpen] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [darkMode]);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return messages;
@@ -535,7 +544,7 @@ export default function App() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative" style={{ isolation: "isolate" }}>
       {/* ambient pastel background blobs */}
       <div
         className="fixed top-0 left-1/4 w-96 h-96 rounded-full pointer-events-none"
@@ -589,12 +598,25 @@ export default function App() {
 
           <button
             type="button"
+            data-ocid="theme.toggle"
+            onClick={() => setDarkMode((d) => !d)}
+            className="p-2 rounded-sm border border-border text-muted-foreground hover:text-foreground hover:border-foreground/40 transition-colors shrink-0"
+            aria-label={
+              darkMode ? "switch to light mode" : "switch to dark mode"
+            }
+            title={darkMode ? "light mode" : "dark mode"}
+          >
+            {darkMode ? <Sun size={15} /> : <Moon size={15} />}
+          </button>
+
+          <button
+            type="button"
             data-ocid="compose.open_modal_button"
             onClick={() => setComposeOpen(true)}
             className="retro-button-primary hidden md:block text-sm px-4 py-2 whitespace-nowrap"
           >
             <Mail size={13} className="inline mr-1.5" />
-            write a letter ✉
+            write a letter
           </button>
         </div>
       </header>
@@ -602,26 +624,6 @@ export default function App() {
       {/* hero section */}
       <main>
         <section className="text-center pt-12 pb-8 px-4">
-          {/* cassette */}
-          <button
-            type="button"
-            className="cassette-wrapper inline-block mb-6 animate-float-up cursor-pointer bg-transparent border-0 p-0"
-            onClick={() => setComposeOpen(true)}
-            aria-label="open compose — write a letter"
-          >
-            <motion.img
-              src="/assets/uploads/cassette.jpg"
-              alt="retro cassette tape"
-              className="w-full max-w-sm md:max-w-md mx-auto drop-shadow-2xl"
-              style={{
-                filter:
-                  "drop-shadow(0 4px 24px oklch(0.80 0.12 350 / 0.25)) drop-shadow(0 2px 8px rgba(0,0,0,0.10))",
-              }}
-              whileHover={{ scale: 1.03, rotate: 1 }}
-              transition={{ type: "spring", stiffness: 200, damping: 20 }}
-            />
-          </button>
-
           {/* title */}
           <motion.h1
             className="vhs-title mb-3"
@@ -643,15 +645,30 @@ export default function App() {
             say the things you never said.
           </motion.p>
           <motion.p
-            className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed"
+            className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed mb-8"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            a quiet space for unspoken words.
-            <br />
-            click the cassette — or search your name.
+            a quiet space for unspoken words. search your name, or leave one
+            behind.
           </motion.p>
+
+          {/* write a letter cta */}
+          <motion.button
+            type="button"
+            data-ocid="hero.compose.open_modal_button"
+            onClick={() => setComposeOpen(true)}
+            className="retro-button-primary px-8 py-3 inline-flex items-center gap-2"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.65 }}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.97 }}
+          >
+            <Mail size={14} />
+            write a letter
+          </motion.button>
         </section>
 
         {/* message collage */}
@@ -677,7 +694,7 @@ export default function App() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
             >
-              <p className="text-4xl mb-4 opacity-40">✉</p>
+              <p className="text-4xl mb-4 opacity-40" />
               <p className="text-muted-foreground text-sm">
                 no letters found for{" "}
                 <span className="neon-text-pink">"{search}"</span>
@@ -724,7 +741,7 @@ export default function App() {
         whileTap={{ scale: 0.97 }}
       >
         <Mail size={14} />
-        write a letter ✉
+        write a letter
       </motion.button>
 
       {/* footer */}
@@ -759,11 +776,14 @@ export default function App() {
 
       <Toaster
         position="bottom-center"
+        theme={darkMode ? "dark" : "light"}
         toastOptions={{
           style: {
-            background: "oklch(0.98 0.008 75)",
+            background: darkMode
+              ? "oklch(0.22 0.07 255)"
+              : "oklch(0.998 0.003 75)",
             border: "1.5px solid oklch(0.80 0.12 350 / 0.5)",
-            color: "oklch(0.28 0.04 270)",
+            color: darkMode ? "oklch(0.93 0.012 220)" : "oklch(0.28 0.04 270)",
             fontFamily: "'Courier New', monospace",
             fontSize: "0.85rem",
             textTransform: "lowercase",

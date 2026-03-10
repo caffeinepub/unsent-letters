@@ -1014,7 +1014,7 @@ export default function App() {
       if (!actor || deletingId !== null) return;
       setDeletingId(msg.id);
       try {
-        (
+        await (
           actor as backendInterface & {
             deleteMessage: (id: bigint) => Promise<boolean>;
           }

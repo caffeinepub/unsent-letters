@@ -19,8 +19,8 @@ actor {
     isSeeded : Bool;
   };
 
-  var nextId : Nat = 12;
-  var stableMessages : [(Nat, Message)] = [];
+  stable var nextId : Nat = 12;
+  stable var stableMessages : [(Nat, Message)] = [];
 
   let messageStore = Map.empty<Nat, Message>();
 

@@ -1,10 +1,8 @@
 import Nat "mo:core/Nat";
 import Text "mo:core/Text";
 import Map "mo:core/Map";
-import Iter "mo:core/Iter";
 import Time "mo:core/Time";
 import Int "mo:core/Int";
-import Array "mo:core/Array";
 import Order "mo:core/Order";
 
 
@@ -21,10 +19,22 @@ actor {
     isSeeded : Bool;
   };
 
-  var nextId = 12;
+  var nextId : Nat = 12;
+  var stableMessages : [(Nat, Message)] = [];
+
   let messageStore = Map.empty<Nat, Message>();
 
-  let sampleMessages = [
+  system func preupgrade() {
+    stableMessages := messageStore.toArray();
+  };
+
+  system func postupgrade() {
+    for ((k, v) in stableMessages.values()) {
+      messageStore.add(k, v);
+    };
+  };
+
+  let sampleMessages : [Message] = [
     {
       id = 0;
       to = "maya";
@@ -147,9 +157,12 @@ actor {
     },
   ];
 
+  // Seed sample messages only if store is empty (first deploy)
   do {
-    for (message in sampleMessages.values()) {
-      messageStore.add(message.id, message);
+    if (messageStore.size() == 0) {
+      for (message in sampleMessages.values()) {
+        messageStore.add(message.id, message);
+      };
     };
   };
 
@@ -174,6 +187,16 @@ actor {
     messageStore.add(nextId, msg);
     nextId += 1;
     msg.id;
+  };
+
+  public shared ({ caller }) func deleteMessage(id : Nat) : async Bool {
+    let exists = messageStore.get(id) != null;
+    if (exists) {
+      messageStore.remove(id);
+      true;
+    } else {
+      false;
+    };
   };
 
   public query ({ caller }) func getMessages() : async [Message] {

@@ -1,8 +1,19 @@
 import { Toaster } from "@/components/ui/sonner";
-import { Lock, Mail, Moon, Music, Search, Sun, X } from "lucide-react";
+import {
+  ArrowLeft,
+  Lock,
+  Mail,
+  Moon,
+  Music,
+  Search,
+  Sun,
+  Trash2,
+  X,
+} from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import type { backendInterface } from "./backend";
 import { useActor } from "./hooks/useActor";
 
 // ─── types ────────────────────────────────────────────────────────────────────
@@ -154,6 +165,8 @@ const COLOR_PRESETS = [
   "#b8c8e8", // pastel periwinkle
 ];
 
+const CREATOR_PASSWORD = "230190";
+
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
 function getContrastColor(hex: string): string {
@@ -173,6 +186,123 @@ function timeAgo(ts: number): string {
   const months = Math.floor(days / 30);
   if (months === 1) return "a month ago";
   return `${months} months ago`;
+}
+
+// ─── creator password modal ───────────────────────────────────────────────────
+
+interface CreatorModalProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+function CreatorModal({ open, onClose, onSuccess }: CreatorModalProps) {
+  const [pw, setPw] = useState("");
+  const [error, setError] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (open) {
+      setPw("");
+      setError(false);
+      setTimeout(() => inputRef.current?.focus(), 80);
+    }
+  }, [open]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pw === CREATOR_PASSWORD) {
+      onSuccess();
+      onClose();
+    } else {
+      setError(true);
+      setPw("");
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) onClose();
+          }}
+        >
+          <motion.div
+            data-ocid="creator.dialog"
+            className="relative w-full max-w-xs border border-border bg-background p-6"
+            style={{
+              boxShadow:
+                "0 4px 40px oklch(0.80_0.12_350 / 0.12), 0 2px 12px rgba(0,0,0,0.08)",
+            }}
+            initial={{ opacity: 0, y: 20, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 14, scale: 0.98 }}
+            transition={{ type: "spring", stiffness: 320, damping: 28 }}
+          >
+            <button
+              type="button"
+              onClick={onClose}
+              className="absolute top-3 right-3 text-muted-foreground/50 hover:text-muted-foreground transition-colors p-1"
+              aria-label="close"
+            >
+              <X size={14} />
+            </button>
+
+            <p
+              className="text-xs tracking-widest mb-4 text-muted-foreground"
+              style={{ fontFamily: "'Courier New', monospace" }}
+            >
+              creator access
+            </p>
+
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <input
+                ref={inputRef}
+                data-ocid="creator.password.input"
+                type="password"
+                className="retro-input"
+                placeholder="enter password"
+                value={pw}
+                onChange={(e) => {
+                  setPw(e.target.value);
+                  setError(false);
+                }}
+                autoComplete="off"
+              />
+
+              <AnimatePresence>
+                {error && (
+                  <motion.p
+                    className="text-xs text-rose-400/80"
+                    style={{ fontFamily: "'Courier New', monospace" }}
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    incorrect password.
+                  </motion.p>
+                )}
+              </AnimatePresence>
+
+              <button
+                data-ocid="creator.submit_button"
+                type="submit"
+                className="retro-button-primary w-full text-sm py-2"
+              >
+                unlock
+              </button>
+            </form>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 }
 
 // ─── compose modal ────────────────────────────────────────────────────────────
@@ -567,9 +697,10 @@ interface TileProps {
   message: Message;
   index: number;
   onClick: () => void;
+  onDelete?: () => void;
 }
 
-function MessageTile({ message, index, onClick }: TileProps) {
+function MessageTile({ message, index, onClick, onDelete }: TileProps) {
   const textColor = getContrastColor(message.color);
   const snippet =
     message.message.length > 90
@@ -594,10 +725,37 @@ function MessageTile({ message, index, onClick }: TileProps) {
         boxShadow: `0 8px 30px ${message.color}50, 0 4px 12px rgba(0,0,0,0.5)`,
       }}
     >
+      {/* delete button — only visible in creator mode */}
+      {onDelete && (
+        <button
+          type="button"
+          data-ocid={`messages.delete_button.${index}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          className="absolute top-2 right-2 z-10 p-1 rounded-sm transition-all hover:scale-110"
+          style={{
+            color: textColor,
+            background: "rgba(0,0,0,0.18)",
+            backdropFilter: "blur(2px)",
+          }}
+          aria-label="delete letter"
+          title="delete letter"
+        >
+          <Trash2 size={11} />
+        </button>
+      )}
+
       {message.isPrivate && (
         <div
           className="absolute top-2 right-2"
-          style={{ color: textColor, opacity: 0.6 }}
+          style={{
+            color: textColor,
+            opacity: 0.6,
+            // shift right if delete button also present
+            right: onDelete ? "1.75rem" : undefined,
+          }}
           title="private letter"
         >
           <Lock size={10} />
@@ -809,8 +967,14 @@ export default function App() {
   const [selectedSelfLetter, setSelectedSelfLetter] =
     useState<SelfLetter | null>(null);
   const [darkMode, setDarkMode] = useState(false);
-  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [showInBetween, setShowInBetween] = useState(false);
 
+  // creator mode
+  const [creatorMode, setCreatorMode] = useState(false);
+  const [creatorModalOpen, setCreatorModalOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fetchMessages = useCallback(async () => {
     if (!actor) return;
     try {
@@ -843,6 +1007,27 @@ export default function App() {
       }
     },
     [actor],
+  );
+
+  const handleDelete = useCallback(
+    async (msg: Message) => {
+      if (!actor || deletingId !== null) return;
+      setDeletingId(msg.id);
+      try {
+        (
+          actor as backendInterface & {
+            deleteMessage: (id: bigint) => Promise<boolean>;
+          }
+        ).deleteMessage(BigInt(msg.id));
+        await fetchMessages();
+        toast("letter removed.", { duration: 3000 });
+      } catch {
+        toast.error("couldn't delete. try again.", { duration: 3000 });
+      } finally {
+        setDeletingId(null);
+      }
+    },
+    [actor, deletingId, fetchMessages],
   );
 
   useEffect(() => {
@@ -936,8 +1121,52 @@ export default function App() {
         }}
       />
 
+      {/* creator mode banner */}
+      <AnimatePresence>
+        {creatorMode && (
+          <motion.div
+            className="fixed top-0 left-0 right-0 z-40 flex items-center justify-center gap-3 py-1.5 px-4"
+            style={{
+              background: "oklch(0.80 0.12 350 / 0.13)",
+              backdropFilter: "blur(8px)",
+              borderBottom: "1px solid oklch(0.80 0.12 350 / 0.25)",
+              fontFamily: "'Courier New', monospace",
+            }}
+            initial={{ opacity: 0, y: -24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -24 }}
+            transition={{ type: "spring", stiffness: 320, damping: 28 }}
+          >
+            <span
+              className="text-xs"
+              style={{ color: "var(--muted-foreground)", opacity: 0.7 }}
+            >
+              creator mode
+            </span>
+            <button
+              type="button"
+              data-ocid="creator.exit_button"
+              onClick={() => setCreatorMode(false)}
+              className="text-xs transition-opacity hover:opacity-100"
+              style={{
+                color: "var(--muted-foreground)",
+                opacity: 0.5,
+                fontFamily: "'Courier New', monospace",
+                textDecoration: "underline",
+                textUnderlineOffset: "2px",
+              }}
+            >
+              exit
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* header */}
-      <header className="sticky top-0 z-30 border-b border-border backdrop-blur-sm bg-background/90">
+      <header
+        className="sticky top-0 z-30 border-b border-border backdrop-blur-sm bg-background/90"
+        style={{ top: creatorMode ? "2rem" : "0" }}
+      >
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
           <div className="flex-shrink-0">
             <span className="vhs-title text-xl neon-text-pink animate-flicker">
@@ -1016,190 +1245,230 @@ export default function App() {
             behind.
           </motion.p>
 
-          <motion.button
-            type="button"
-            data-ocid="hero.compose.open_modal_button"
-            onClick={() => setComposeOpen(true)}
-            className="retro-button-primary px-8 py-3 inline-flex items-center gap-2"
+          <motion.div
+            className="flex items-center justify-center gap-3 flex-wrap"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.65 }}
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.97 }}
           >
-            <Mail size={14} />
-            write a letter
-          </motion.button>
+            <motion.button
+              type="button"
+              data-ocid="hero.compose.open_modal_button"
+              onClick={() => setComposeOpen(true)}
+              className="retro-button-primary px-8 py-3 inline-flex items-center gap-2"
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              <Mail size={14} />
+              write a letter
+            </motion.button>
+
+            <motion.button
+              type="button"
+              data-ocid="hero.in_between.button"
+              onClick={() => setShowInBetween(true)}
+              className="retro-button-primary px-8 py-3 inline-flex items-center gap-2"
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              for the in-between
+            </motion.button>
+          </motion.div>
         </section>
 
-        {/* two-column layout */}
-        <div className="max-w-7xl mx-auto px-4 pb-28 grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8 items-start">
-          {/* left column: letters for you */}
-          <aside>
+        {/* view switcher: in-between vs main letters */}
+        <AnimatePresence mode="wait">
+          {showInBetween ? (
             <motion.div
-              className="mb-5"
-              initial={{ opacity: 0, y: 10 }}
+              key="in-between-view"
+              className="max-w-5xl mx-auto px-4 pb-28"
+              initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.35, ease: "easeInOut" }}
             >
-              <p
-                className="text-xs tracking-widest uppercase mb-1"
-                style={{
-                  fontFamily: "'Courier New', monospace",
-                  color: "var(--muted-foreground)",
-                  opacity: 0.6,
-                }}
-              >
-                letters for you
-              </p>
-              <h2
-                className="text-sm tracking-wide"
-                style={{
-                  fontFamily: "'Courier New', monospace",
-                  color: "var(--foreground)",
-                  opacity: 0.75,
-                }}
-              >
-                for the in-between
-              </h2>
-              <p
-                className="text-xs mt-1 leading-relaxed"
-                style={{
-                  fontFamily: "'Courier New', monospace",
-                  color: "var(--muted-foreground)",
-                  opacity: 0.5,
-                }}
-              >
-                for the moments too quiet to explain
-              </p>
-              <div
-                className="mt-3 h-px w-12"
-                style={{
-                  background:
-                    "linear-gradient(to right, oklch(0.80 0.12 350 / 0.5), transparent)",
-                }}
-              />
-            </motion.div>
-
-            <div className="flex flex-col gap-3">
-              {SELF_LETTERS.map((l, i) => (
-                <SelfLetterTile
-                  key={l.id}
-                  letter={l}
-                  index={i + 1}
-                  onClick={() => setSelectedSelfLetter(l)}
-                />
-              ))}
-            </div>
-          </aside>
-
-          {/* right column: unsent letters collage */}
-          <section>
-            {/* loading state */}
-            {loading && (
-              <motion.div
-                data-ocid="messages.loading_state"
-                className="text-center py-20"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                <p className="text-sm text-muted-foreground/70 tracking-widest animate-pulse">
-                  loading letters…
-                </p>
-              </motion.div>
-            )}
-
-            {/* error state */}
-            {!loading && loadError && (
-              <motion.div
-                data-ocid="messages.error_state"
-                className="text-center py-20"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                <p className="text-sm text-muted-foreground">
-                  couldn't load letters right now.
-                </p>
+              {/* in-between header */}
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <p
+                    className="text-xs tracking-widest uppercase mb-1"
+                    style={{
+                      fontFamily: "'Courier New', monospace",
+                      color: "var(--muted-foreground)",
+                      opacity: 0.6,
+                    }}
+                  >
+                    letters for you
+                  </p>
+                  <h2
+                    className="text-xl tracking-wide neon-text-pink"
+                    style={{ fontFamily: "'Courier New', monospace" }}
+                  >
+                    for the in-between
+                  </h2>
+                  <p
+                    className="text-xs mt-1 leading-relaxed"
+                    style={{
+                      fontFamily: "'Courier New', monospace",
+                      color: "var(--muted-foreground)",
+                      opacity: 0.55,
+                    }}
+                  >
+                    for the moments too quiet to explain
+                  </p>
+                </div>
                 <button
                   type="button"
-                  onClick={fetchMessages}
-                  className="mt-4 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors"
+                  data-ocid="in_between.back_button"
+                  onClick={() => setShowInBetween(false)}
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  style={{ fontFamily: "'Courier New', monospace" }}
                 >
-                  try again
+                  <ArrowLeft size={13} />
+                  back to letters
                 </button>
-              </motion.div>
-            )}
-
-            {/* search result label */}
-            {!loading && !loadError && search && (
-              <div className="mb-6 text-sm text-muted-foreground">
-                {displayed.length > 0 ? (
-                  <span>
-                    {displayed.length} letter{displayed.length !== 1 ? "s" : ""}{" "}
-                    addressed to{" "}
-                    <span className="neon-text-pink">"{search}"</span>
-                  </span>
-                ) : null}
               </div>
-            )}
 
-            {/* empty state */}
-            {!loading && !loadError && displayed.length === 0 && (
-              <motion.div
-                data-ocid="messages.empty_state"
-                className="text-center py-20"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                <p className="text-4xl mb-4 opacity-40" />
-                {search ? (
-                  <>
-                    <p className="text-muted-foreground text-sm">
-                      no letters found for{" "}
-                      <span className="neon-text-pink">"{search}"</span>
-                    </p>
-                    <p className="text-muted-foreground text-xs mt-2 opacity-60">
-                      maybe yours hasn't been sent yet.
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-muted-foreground text-sm">
-                      no letters yet. be the first to send one.
-                    </p>
-                    <p className="text-muted-foreground text-xs mt-2 opacity-60">
-                      your words will live here, forever unsent.
-                    </p>
-                  </>
-                )}
-              </motion.div>
-            )}
-
-            {/* masonry grid */}
-            {!loading && !loadError && displayed.length > 0 && (
+              {/* in-between grid */}
               <div
-                style={{
-                  columns: "var(--cols, 2)",
-                  columnGap: "1rem",
-                }}
-                className="[--cols:1] sm:[--cols:2] md:[--cols:3]"
+                style={{ columns: "var(--ib-cols, 2)", columnGap: "1rem" }}
+                className="[--ib-cols:1] sm:[--ib-cols:2] lg:[--ib-cols:3]"
               >
-                {displayed.map((msg, i) => (
+                {SELF_LETTERS.map((l, i) => (
                   <div
-                    key={msg.id}
+                    key={l.id}
                     style={{ marginBottom: "1rem", breakInside: "avoid" }}
                   >
-                    <MessageTile
-                      message={msg}
+                    <SelfLetterTile
+                      letter={l}
                       index={i + 1}
-                      onClick={() => setSelectedMessage(msg)}
+                      onClick={() => setSelectedSelfLetter(l)}
                     />
                   </div>
                 ))}
               </div>
-            )}
-          </section>
-        </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="main-view"
+              className="max-w-7xl mx-auto px-4 pb-28"
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.35, ease: "easeInOut" }}
+            >
+              {/* unsent letters collage */}
+              <section>
+                {/* loading state */}
+                {loading && (
+                  <motion.div
+                    data-ocid="messages.loading_state"
+                    className="text-center py-20"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                  >
+                    <p className="text-sm text-muted-foreground/70 tracking-widest animate-pulse">
+                      loading letters…
+                    </p>
+                  </motion.div>
+                )}
+
+                {/* error state */}
+                {!loading && loadError && (
+                  <motion.div
+                    data-ocid="messages.error_state"
+                    className="text-center py-20"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                  >
+                    <p className="text-sm text-muted-foreground">
+                      couldn't load letters right now.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={fetchMessages}
+                      className="mt-4 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors"
+                    >
+                      try again
+                    </button>
+                  </motion.div>
+                )}
+
+                {/* search result label */}
+                {!loading && !loadError && search && (
+                  <div className="mb-6 text-sm text-muted-foreground">
+                    {displayed.length > 0 ? (
+                      <span>
+                        {displayed.length} letter
+                        {displayed.length !== 1 ? "s" : ""} addressed to{" "}
+                        <span className="neon-text-pink">"{search}"</span>
+                      </span>
+                    ) : null}
+                  </div>
+                )}
+
+                {/* empty state */}
+                {!loading && !loadError && displayed.length === 0 && (
+                  <motion.div
+                    data-ocid="messages.empty_state"
+                    className="text-center py-20"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                  >
+                    <p className="text-4xl mb-4 opacity-40" />
+                    {search ? (
+                      <>
+                        <p className="text-muted-foreground text-sm">
+                          no letters found for{" "}
+                          <span className="neon-text-pink">"{search}"</span>
+                        </p>
+                        <p className="text-muted-foreground text-xs mt-2 opacity-60">
+                          maybe yours hasn't been sent yet.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-muted-foreground text-sm">
+                          no letters yet. be the first to send one.
+                        </p>
+                        <p className="text-muted-foreground text-xs mt-2 opacity-60">
+                          your words will live here, forever unsent.
+                        </p>
+                      </>
+                    )}
+                  </motion.div>
+                )}
+
+                {/* masonry grid */}
+                {!loading && !loadError && displayed.length > 0 && (
+                  <div
+                    style={{
+                      columns: "var(--cols, 2)",
+                      columnGap: "1rem",
+                    }}
+                    className="[--cols:1] sm:[--cols:2] md:[--cols:3]"
+                  >
+                    {displayed.map((msg, i) => (
+                      <div
+                        key={msg.id}
+                        style={{ marginBottom: "1rem", breakInside: "avoid" }}
+                      >
+                        <MessageTile
+                          message={msg}
+                          index={i + 1}
+                          onClick={() => setSelectedMessage(msg)}
+                          onDelete={
+                            creatorMode ? () => handleDelete(msg) : undefined
+                          }
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
       {/* floating compose button (mobile) */}
@@ -1230,6 +1499,34 @@ export default function App() {
           </a>
         </p>
         <p className="text-xs text-muted-foreground/40 mt-1">by azi</p>
+        {/* subtle creator link — intentionally low-visibility */}
+        <button
+          type="button"
+          data-ocid="creator.open_modal_button"
+          onClick={() =>
+            creatorMode ? setCreatorMode(false) : setCreatorModalOpen(true)
+          }
+          className="mt-2 text-xs transition-opacity"
+          style={{
+            color: "var(--muted-foreground)",
+            opacity: 0.18,
+            fontFamily: "'Courier New', monospace",
+            letterSpacing: "0.04em",
+            background: "none",
+            border: "none",
+            cursor: "default",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.opacity = "0.45";
+            (e.currentTarget as HTMLButtonElement).style.cursor = "pointer";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.opacity = "0.18";
+            (e.currentTarget as HTMLButtonElement).style.cursor = "default";
+          }}
+        >
+          {creatorMode ? "exit creator" : "creator"}
+        </button>
       </footer>
 
       {/* modals */}
@@ -1248,6 +1545,12 @@ export default function App() {
       <SelfLetterModal
         letter={selectedSelfLetter}
         onClose={() => setSelectedSelfLetter(null)}
+      />
+
+      <CreatorModal
+        open={creatorModalOpen}
+        onClose={() => setCreatorModalOpen(false)}
+        onSuccess={() => setCreatorMode(true)}
       />
 
       <Toaster

@@ -21,4 +21,5 @@ export interface backendInterface {
     getMessages(): Promise<Array<Message>>;
     searchMessages(queryString: string): Promise<Array<Message>>;
     submitMessage(to: string, message: string, song: string, color: string, isPrivate: boolean): Promise<bigint>;
+    deleteMessage(id: bigint): Promise<boolean>;
 }

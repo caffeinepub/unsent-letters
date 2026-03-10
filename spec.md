@@ -1,26 +1,27 @@
 # Unsent Letters
 
 ## Current State
-The app has a hero section, a compose modal, and a masonry grid of user-submitted unsent letters (fetched from backend). There's a search bar, dark/light mode toggle, and a privacy toggle on compose.
+Full-stack app with Motoko backend (stable storage, getMessages, searchMessages, submitMessage) and React frontend. Letters shown as pastel tiles in masonry grid. No admin/delete functionality exists.
 
 ## Requested Changes (Diff)
 
 ### Add
-- A new "letters for you" column of 7 prewritten encouragement/heartfelt letters addressed to the reader (second person, no label like "reader") covering: loneliness, heartbreak, when skin feels tight, insecurities, feeling lost, heavy days, and grief/letting go.
-- Each letter is a clickable tile styled like the existing message tiles (pastel colors, same card style).
-- Clicking a letter tile opens an expanded modal to read the full letter.
-- The section has its own soft heading e.g. "for you" or "letters for the in-between."
+- `deleteMessage(id: Nat): async Bool` backend function
+- Creator mode in frontend: activated by clicking a small "creator" link in the footer (near "by azi"), entering password "230190"
+- In creator mode, each letter tile shows a small delete button
+- Clicking delete calls backend to permanently remove the letter and refreshes the list
+- An "exit creator mode" button visible when in creator mode
+- Creator mode state is local (cleared on refresh)
 
 ### Modify
-- Main content area restructured into a two-column layout: left column = self-letters, right column = existing unsent letters collage.
-- On mobile, self-letters stack above unsent letters.
+- Footer: add a subtle "creator" link next to "by azi"
+- MessageTile: accept optional onDelete prop; show delete button only in creator mode
+- backend.d.ts: add deleteMessage signature
 
 ### Remove
-- Nothing removed.
+- Nothing removed
 
 ## Implementation Plan
-1. Define 7 prewritten letter objects (topic, snippet, full text, pastel color) as a constant in App.tsx.
-2. Create `SelfLetterTile` component (same visual style as MessageTile).
-3. Create `SelfLetterModal` component for expanded reading.
-4. Restructure `<main>` to a two-column grid: left = self-letters column, right = unsent letters collage.
-5. Wire open/close state for self-letter modal.
+1. Add deleteMessage to backend main.mo
+2. Update backend.d.ts with deleteMessage signature
+3. Update App.tsx: add creatorMode state, password prompt on footer link click, delete button on tiles in creator mode, exit button

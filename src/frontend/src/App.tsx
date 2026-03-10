@@ -18,6 +18,125 @@ type Message = {
   isSeeded: boolean;
 };
 
+// ─── self letters ─────────────────────────────────────────────────────────────
+
+const SELF_LETTERS = [
+  {
+    id: "sl-1",
+    topic: "when you feel lonely",
+    color: "#c9b8e8",
+    snippet: "the quiet around you right now is not proof that no one cares.",
+    letter: `the quiet around you right now is not proof that no one cares. it's just a pause — the kind that comes between things, not after them.
+
+loneliness has a way of making you believe the story is over. that everyone else has found their people and you somehow missed the moment. but that's not how it works. connection doesn't follow a schedule.
+
+right now, in this exact moment, someone somewhere is sitting in the same silence. wishing for the same warmth. thinking the same thoughts you're thinking.
+
+you are not behind. you are not forgotten. you are just in the in-between, and the in-between is allowed to hurt.
+
+hold on. not for anyone else. just for the version of you that hasn't met all the right people yet.`,
+  },
+  {
+    id: "sl-2",
+    topic: "when your heart is broken",
+    color: "#f4b8c8",
+    snippet:
+      "heartbreak is not a sign you loved wrong. it means you loved fully.",
+    letter: `heartbreak is not a sign you loved wrong. it means you were brave enough to love fully, without a guarantee.
+
+that kind of love is rare. the kind that makes your whole chest feel like it belongs to someone else. and when it ends — or changes, or disappears — the pain is proportional to how real it was. this pain is proof it mattered.
+
+you don't have to be okay right now. you don't have to rush the grief or explain it to anyone. some things just need to be felt until they settle.
+
+what you had was real. what you feel is real. and slowly, without you even noticing, you will put yourself back together — not the same way as before, but in ways that surprise you.
+
+you will love again. maybe differently. but you will.`,
+  },
+  {
+    id: "sl-3",
+    topic: "when your skin feels tight",
+    color: "#b8d4f4",
+    snippet:
+      "your body is not a problem to be solved. it's the place you live.",
+    letter: `your body is not a problem to be solved. it's the place you live — and right now it might feel unfamiliar, uncomfortable, or like it belongs to someone else's story.
+
+that's a hard feeling. one that's difficult to explain and even harder to carry.
+
+but you are not less because of how your body feels today. the tightness, the disconnection, the restlessness — these are feelings passing through, not permanent truths.
+
+you are allowed to take up space. you are allowed to exist in this body exactly as it is right now, without earning it, without fixing it first.
+
+be gentle. softer than you think you deserve. drink water. feel the floor beneath your feet. you are here. that is enough.`,
+  },
+  {
+    id: "sl-4",
+    topic: "when insecurities build up",
+    color: "#b8e8c9",
+    snippet: "the voice that lists every flaw is not the truth of you.",
+    letter: `the voice that lists every flaw — the one that sounds so certain, so clinical — is not the truth of you. it's just noise that got too loud.
+
+insecurity has a way of collecting evidence. it highlights every stumble, every difference, every moment you didn't measure up to some invisible standard. but it ignores everything else. the times you showed up. the quiet ways you're good. the things people remember about you that you've already forgotten.
+
+you are being seen more kindly than you see yourself.
+
+you don't have to love every part of yourself today. but you don't have to tear it apart either. try neutral. try: this is where I am. this is what I look like. this is me, for now.
+
+that's enough. you're enough. even on the days it doesn't feel like it.`,
+  },
+  {
+    id: "sl-5",
+    topic: "when everything feels heavy",
+    color: "#f4d4b8",
+    snippet: "you don't have to carry all of it at once.",
+    letter: `you don't have to carry all of it at once.
+
+I know it's piled up. the things undone, the words unsaid, the worries you wake up with before you've even opened your eyes. it feels like if you stop moving, everything will collapse.
+
+but you're allowed to set some of it down. not forever. just for right now.
+
+you've made it through every hard day so far. every single one. that's not nothing — that's everything.
+
+rest is not defeat. slowing down is not giving up. sometimes the most important thing you can do is let today be small. let it just be: breathe, drink something warm, close your eyes for a minute.
+
+the rest will still be there. but so will you. and you matter more than any of it.`,
+  },
+  {
+    id: "sl-6",
+    topic: "when you feel lost",
+    color: "#d4b8f4",
+    snippet:
+      "not knowing who you are right now is not the same as having no self.",
+    letter: `not knowing who you are right now is not the same as having no self. it means you're between versions of yourself. and that transition is disorienting — it's supposed to be.
+
+you don't have to have it figured out. you don't have to know your direction, your purpose, the shape of your future. some people have that clarity and some don't, and neither is a moral failing.
+
+what you have right now is this moment. and the next one. and curiosity, even when it feels like confusion.
+
+lost is not the final destination. it's just where you are on the way to somewhere else.
+
+trust the wandering. trust yourself more than the map.`,
+  },
+  {
+    id: "sl-7",
+    topic: "when you need to let go",
+    color: "#f4b8e4",
+    snippet: "letting go is not the same as not caring.",
+    letter: `letting go is not the same as not caring. you can release something with both hands and still love it. you can grieve it and move forward in the same breath.
+
+whatever you're holding onto — a person, a version of yourself, a dream that shifted shape — you are allowed to release it without guilt. without pretending it didn't matter.
+
+it mattered. it always will. that's what makes it hard.
+
+but some things were only ever meant to be part of the story, not the ending. and holding on past the point it serves you is just a way of hurting yourself slowly.
+
+you deserve room to breathe. room to become. you deserve a future you haven't had to force.
+
+it's okay to open your hands. gently. one finger at a time.`,
+  },
+];
+
+type SelfLetter = (typeof SELF_LETTERS)[0];
+
 // ─── color presets ────────────────────────────────────────────────────────────
 
 const COLOR_PRESETS = [
@@ -79,7 +198,6 @@ function ComposeModal({
   const [color, setColor] = useState(COLOR_PRESETS[0]);
   const [isPrivate, setIsPrivate] = useState(false);
 
-  // reset form when modal opens
   useEffect(() => {
     if (open) {
       setTo("");
@@ -126,7 +244,6 @@ function ComposeModal({
             exit={{ opacity: 0, y: 20, scale: 0.97 }}
             transition={{ type: "spring", stiffness: 300, damping: 28 }}
           >
-            {/* header */}
             <div className="flex items-center justify-between mb-6">
               <h2 className="vhs-title text-2xl neon-text-pink">
                 a letter, unsent.
@@ -143,7 +260,6 @@ function ComposeModal({
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* to */}
               <div>
                 <label
                   htmlFor="compose-to"
@@ -163,7 +279,6 @@ function ComposeModal({
                 />
               </div>
 
-              {/* message */}
               <div>
                 <label
                   htmlFor="compose-message"
@@ -183,7 +298,6 @@ function ComposeModal({
                 />
               </div>
 
-              {/* song */}
               <div>
                 <label
                   htmlFor="compose-song"
@@ -203,7 +317,6 @@ function ComposeModal({
                 />
               </div>
 
-              {/* color picker */}
               <div>
                 <p className="block text-xs text-muted-foreground mb-2.5 tracking-widest">
                   pick a color — the feeling of them:
@@ -239,7 +352,6 @@ function ComposeModal({
                 </div>
               </div>
 
-              {/* privacy toggle */}
               <div className="border border-border/50 rounded-sm p-3 bg-muted/30">
                 <label
                   htmlFor="compose-private"
@@ -254,7 +366,6 @@ function ComposeModal({
                       checked={isPrivate}
                       onChange={(e) => setIsPrivate(e.target.checked)}
                     />
-                    {/* custom styled toggle */}
                     <div
                       className={`w-9 h-5 rounded-full border transition-all duration-200 flex items-center ${
                         isPrivate
@@ -283,7 +394,6 @@ function ComposeModal({
                 </label>
               </div>
 
-              {/* submit */}
               <button
                 data-ocid="compose.submit_button"
                 type="submit"
@@ -337,7 +447,6 @@ function DetailModal({ message, onClose }: DetailModalProps) {
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ type: "spring", stiffness: 320, damping: 28 }}
           >
-            {/* scanlines on modal */}
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
@@ -347,7 +456,6 @@ function DetailModal({ message, onClose }: DetailModalProps) {
             />
 
             <div className="relative p-8">
-              {/* close button */}
               <button
                 type="button"
                 data-ocid="message.close_button"
@@ -359,7 +467,6 @@ function DetailModal({ message, onClose }: DetailModalProps) {
                 <X size={18} />
               </button>
 
-              {/* private indicator */}
               {message.isPrivate && (
                 <div
                   className="absolute top-4 left-4 flex items-center gap-1 text-xs opacity-60"
@@ -378,7 +485,6 @@ function DetailModal({ message, onClose }: DetailModalProps) {
                 </div>
               )}
 
-              {/* to */}
               <p
                 className="text-xs font-bold tracking-widest mb-4 opacity-70"
                 style={{
@@ -400,7 +506,6 @@ function DetailModal({ message, onClose }: DetailModalProps) {
                 {message.to}
               </h2>
 
-              {/* message */}
               <p
                 className="text-sm leading-relaxed mb-8 whitespace-pre-line"
                 style={{
@@ -411,7 +516,6 @@ function DetailModal({ message, onClose }: DetailModalProps) {
                 {message.message}
               </p>
 
-              {/* song */}
               {message.song && (
                 <div className="flex items-start gap-2">
                   <Music
@@ -440,7 +544,6 @@ function DetailModal({ message, onClose }: DetailModalProps) {
                 </div>
               )}
 
-              {/* timestamp */}
               <p
                 className="text-xs mt-6 opacity-50"
                 style={{
@@ -491,7 +594,6 @@ function MessageTile({ message, index, onClick }: TileProps) {
         boxShadow: `0 8px 30px ${message.color}50, 0 4px 12px rgba(0,0,0,0.5)`,
       }}
     >
-      {/* private lock indicator */}
       {message.isPrivate && (
         <div
           className="absolute top-2 right-2"
@@ -518,6 +620,153 @@ function MessageTile({ message, index, onClick }: TileProps) {
         </div>
       )}
     </motion.div>
+  );
+}
+
+// ─── self letter tile ─────────────────────────────────────────────────────────
+
+interface SelfLetterTileProps {
+  letter: SelfLetter;
+  index: number;
+  onClick: () => void;
+}
+
+function SelfLetterTile({ letter, index, onClick }: SelfLetterTileProps) {
+  const textColor = getContrastColor(letter.color);
+
+  return (
+    <motion.div
+      data-ocid={`self_letters.item.${index}`}
+      className="message-tile relative cursor-pointer"
+      style={{
+        backgroundColor: letter.color,
+        color: textColor,
+        boxShadow: `0 4px 20px ${letter.color}30, 0 2px 8px rgba(0,0,0,0.4)`,
+      }}
+      onClick={onClick}
+      initial={{ opacity: 0, x: -16 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.07, duration: 0.4 }}
+      whileHover={{
+        y: -4,
+        boxShadow: `0 8px 30px ${letter.color}50, 0 4px 12px rgba(0,0,0,0.5)`,
+      }}
+    >
+      <div
+        className="tile-to"
+        style={{
+          color: textColor,
+          fontFamily: "'Courier New', monospace",
+          fontSize: "0.65rem",
+          letterSpacing: "0.1em",
+          textTransform: "lowercase",
+          opacity: 0.75,
+          marginBottom: "0.35rem",
+        }}
+      >
+        {letter.topic}
+      </div>
+      <div
+        className="tile-message"
+        style={{
+          color: textColor,
+          fontFamily: "'Courier New', monospace",
+          fontSize: "0.78rem",
+          lineHeight: 1.55,
+          fontStyle: "italic",
+        }}
+      >
+        {letter.snippet}
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── self letter modal ────────────────────────────────────────────────────────
+
+interface SelfLetterModalProps {
+  letter: SelfLetter | null;
+  onClose: () => void;
+}
+
+function SelfLetterModal({ letter, onClose }: SelfLetterModalProps) {
+  if (!letter) return null;
+  const textColor = getContrastColor(letter.color);
+
+  return (
+    <AnimatePresence>
+      {letter && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) onClose();
+          }}
+        >
+          <motion.div
+            data-ocid="self_letter.dialog"
+            className="relative w-full max-w-md overflow-hidden"
+            style={{
+              backgroundColor: letter.color,
+              boxShadow: `0 0 40px ${letter.color}50, 0 0 80px ${letter.color}25`,
+            }}
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ type: "spring", stiffness: 320, damping: 28 }}
+          >
+            {/* scanlines */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                backgroundImage:
+                  "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 4px)",
+              }}
+            />
+
+            <div className="relative p-8 overflow-y-auto max-h-[85vh]">
+              <button
+                type="button"
+                data-ocid="self_letter.close_button"
+                onClick={onClose}
+                className="absolute top-4 right-4 p-1 rounded-sm transition-opacity hover:opacity-70"
+                style={{ color: textColor }}
+                aria-label="close"
+              >
+                <X size={18} />
+              </button>
+
+              {/* topic label */}
+              <p
+                className="text-xs tracking-widest mb-6 opacity-70"
+                style={{
+                  color: textColor,
+                  fontFamily: "'Courier New', monospace",
+                  textTransform: "lowercase",
+                  letterSpacing: "0.12em",
+                }}
+              >
+                {letter.topic}
+              </p>
+
+              {/* letter body */}
+              <p
+                className="text-sm leading-relaxed whitespace-pre-line"
+                style={{
+                  color: textColor,
+                  fontFamily: "'Courier New', monospace",
+                  lineHeight: 1.8,
+                }}
+              >
+                {letter.letter}
+              </p>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -557,6 +806,8 @@ export default function App() {
   const [search, setSearch] = useState("");
   const [composeOpen, setComposeOpen] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+  const [selectedSelfLetter, setSelectedSelfLetter] =
+    useState<SelfLetter | null>(null);
   const [darkMode, setDarkMode] = useState(false);
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -566,7 +817,6 @@ export default function App() {
       setLoadError(false);
       const raw = await actor.getMessages();
       const mapped: Message[] = raw.map(mapMessage);
-      // most recent first
       mapped.sort((a, b) => b.timestamp - a.timestamp);
       setMessages(mapped);
     } catch {
@@ -576,7 +826,6 @@ export default function App() {
     }
   }, [actor]);
 
-  // debounced search via backend
   const runSearch = useCallback(
     async (query: string) => {
       if (!actor) return;
@@ -602,7 +851,6 @@ export default function App() {
     }
   }, [actor, actorFetching, fetchMessages]);
 
-  // debounce search
   useEffect(() => {
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     if (!search.trim()) {
@@ -625,7 +873,6 @@ export default function App() {
     }
   }, [darkMode]);
 
-  // displayed letters: search results when searching, otherwise all public messages
   const displayed = useMemo(() => {
     if (search.trim() && searchResults !== null) return searchResults;
     return messages;
@@ -663,7 +910,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen relative" style={{ isolation: "isolate" }}>
-      {/* ambient pastel background blobs */}
+      {/* ambient blobs */}
       <div
         className="fixed top-0 left-1/4 w-96 h-96 rounded-full pointer-events-none"
         style={{
@@ -691,14 +938,13 @@ export default function App() {
 
       {/* header */}
       <header className="sticky top-0 z-30 border-b border-border backdrop-blur-sm bg-background/90">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
           <div className="flex-shrink-0">
             <span className="vhs-title text-xl neon-text-pink animate-flicker">
               unsent
             </span>
           </div>
 
-          {/* search */}
           <div className="flex-1 relative max-w-md">
             <Search
               size={13}
@@ -742,7 +988,6 @@ export default function App() {
       {/* hero section */}
       <main>
         <section className="text-center pt-12 pb-8 px-4">
-          {/* title */}
           <motion.h1
             className="vhs-title mb-3"
             initial={{ opacity: 0, y: 16 }}
@@ -753,7 +998,6 @@ export default function App() {
             <span className="text-foreground">sent</span>
           </motion.h1>
 
-          {/* tagline */}
           <motion.p
             className="tagline neon-text-cyan mb-2"
             initial={{ opacity: 0 }}
@@ -772,7 +1016,6 @@ export default function App() {
             behind.
           </motion.p>
 
-          {/* write a letter cta */}
           <motion.button
             type="button"
             data-ocid="hero.compose.open_modal_button"
@@ -789,112 +1032,174 @@ export default function App() {
           </motion.button>
         </section>
 
-        {/* message collage */}
-        <section className="max-w-6xl mx-auto px-4 pb-28">
-          {/* loading state */}
-          {loading && (
+        {/* two-column layout */}
+        <div className="max-w-7xl mx-auto px-4 pb-28 grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8 items-start">
+          {/* left column: letters for you */}
+          <aside>
             <motion.div
-              data-ocid="messages.loading_state"
-              className="text-center py-20"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              className="mb-5"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
             >
-              <p className="text-sm text-muted-foreground/70 tracking-widest animate-pulse">
-                loading letters…
-              </p>
-            </motion.div>
-          )}
-
-          {/* error state */}
-          {!loading && loadError && (
-            <motion.div
-              data-ocid="messages.error_state"
-              className="text-center py-20"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
-              <p className="text-sm text-muted-foreground">
-                couldn't load letters right now.
-              </p>
-              <button
-                type="button"
-                onClick={fetchMessages}
-                className="mt-4 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors"
+              <p
+                className="text-xs tracking-widest uppercase mb-1"
+                style={{
+                  fontFamily: "'Courier New', monospace",
+                  color: "var(--muted-foreground)",
+                  opacity: 0.6,
+                }}
               >
-                try again
-              </button>
+                letters for you
+              </p>
+              <h2
+                className="text-sm tracking-wide"
+                style={{
+                  fontFamily: "'Courier New', monospace",
+                  color: "var(--foreground)",
+                  opacity: 0.75,
+                }}
+              >
+                for the in-between
+              </h2>
+              <p
+                className="text-xs mt-1 leading-relaxed"
+                style={{
+                  fontFamily: "'Courier New', monospace",
+                  color: "var(--muted-foreground)",
+                  opacity: 0.5,
+                }}
+              >
+                for the moments too quiet to explain
+              </p>
+              <div
+                className="mt-3 h-px w-12"
+                style={{
+                  background:
+                    "linear-gradient(to right, oklch(0.80 0.12 350 / 0.5), transparent)",
+                }}
+              />
             </motion.div>
-          )}
 
-          {/* section header */}
-          {!loading && !loadError && search && (
-            <div className="mb-6 text-sm text-muted-foreground">
-              {displayed.length > 0 ? (
-                <span>
-                  {displayed.length} letter{displayed.length !== 1 ? "s" : ""}{" "}
-                  addressed to{" "}
-                  <span className="neon-text-pink">"{search}"</span>
-                </span>
-              ) : null}
-            </div>
-          )}
-
-          {/* empty state */}
-          {!loading && !loadError && displayed.length === 0 && (
-            <motion.div
-              data-ocid="messages.empty_state"
-              className="text-center py-20"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
-              <p className="text-4xl mb-4 opacity-40" />
-              {search ? (
-                <>
-                  <p className="text-muted-foreground text-sm">
-                    no letters found for{" "}
-                    <span className="neon-text-pink">"{search}"</span>
-                  </p>
-                  <p className="text-muted-foreground text-xs mt-2 opacity-60">
-                    maybe yours hasn't been sent yet.
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="text-muted-foreground text-sm">
-                    no letters yet. be the first to send one.
-                  </p>
-                  <p className="text-muted-foreground text-xs mt-2 opacity-60">
-                    your words will live here, forever unsent.
-                  </p>
-                </>
-              )}
-            </motion.div>
-          )}
-
-          {/* masonry-ish grid */}
-          {!loading && !loadError && displayed.length > 0 && (
-            <div
-              style={{
-                columns: "var(--cols, 2)",
-                columnGap: "1rem",
-              }}
-              className="[--cols:1] sm:[--cols:2] md:[--cols:3] lg:[--cols:4]"
-            >
-              {displayed.map((msg, i) => (
-                <div
-                  key={msg.id}
-                  style={{ marginBottom: "1rem", breakInside: "avoid" }}
-                >
-                  <MessageTile
-                    message={msg}
-                    index={i + 1}
-                    onClick={() => setSelectedMessage(msg)}
-                  />
-                </div>
+            <div className="flex flex-col gap-3">
+              {SELF_LETTERS.map((l, i) => (
+                <SelfLetterTile
+                  key={l.id}
+                  letter={l}
+                  index={i + 1}
+                  onClick={() => setSelectedSelfLetter(l)}
+                />
               ))}
             </div>
-          )}
-        </section>
+          </aside>
+
+          {/* right column: unsent letters collage */}
+          <section>
+            {/* loading state */}
+            {loading && (
+              <motion.div
+                data-ocid="messages.loading_state"
+                className="text-center py-20"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+                <p className="text-sm text-muted-foreground/70 tracking-widest animate-pulse">
+                  loading letters…
+                </p>
+              </motion.div>
+            )}
+
+            {/* error state */}
+            {!loading && loadError && (
+              <motion.div
+                data-ocid="messages.error_state"
+                className="text-center py-20"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+                <p className="text-sm text-muted-foreground">
+                  couldn't load letters right now.
+                </p>
+                <button
+                  type="button"
+                  onClick={fetchMessages}
+                  className="mt-4 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors"
+                >
+                  try again
+                </button>
+              </motion.div>
+            )}
+
+            {/* search result label */}
+            {!loading && !loadError && search && (
+              <div className="mb-6 text-sm text-muted-foreground">
+                {displayed.length > 0 ? (
+                  <span>
+                    {displayed.length} letter{displayed.length !== 1 ? "s" : ""}{" "}
+                    addressed to{" "}
+                    <span className="neon-text-pink">"{search}"</span>
+                  </span>
+                ) : null}
+              </div>
+            )}
+
+            {/* empty state */}
+            {!loading && !loadError && displayed.length === 0 && (
+              <motion.div
+                data-ocid="messages.empty_state"
+                className="text-center py-20"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+                <p className="text-4xl mb-4 opacity-40" />
+                {search ? (
+                  <>
+                    <p className="text-muted-foreground text-sm">
+                      no letters found for{" "}
+                      <span className="neon-text-pink">"{search}"</span>
+                    </p>
+                    <p className="text-muted-foreground text-xs mt-2 opacity-60">
+                      maybe yours hasn't been sent yet.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-muted-foreground text-sm">
+                      no letters yet. be the first to send one.
+                    </p>
+                    <p className="text-muted-foreground text-xs mt-2 opacity-60">
+                      your words will live here, forever unsent.
+                    </p>
+                  </>
+                )}
+              </motion.div>
+            )}
+
+            {/* masonry grid */}
+            {!loading && !loadError && displayed.length > 0 && (
+              <div
+                style={{
+                  columns: "var(--cols, 2)",
+                  columnGap: "1rem",
+                }}
+                className="[--cols:1] sm:[--cols:2] md:[--cols:3]"
+              >
+                {displayed.map((msg, i) => (
+                  <div
+                    key={msg.id}
+                    style={{ marginBottom: "1rem", breakInside: "avoid" }}
+                  >
+                    <MessageTile
+                      message={msg}
+                      index={i + 1}
+                      onClick={() => setSelectedMessage(msg)}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
       </main>
 
       {/* floating compose button (mobile) */}
@@ -938,6 +1243,11 @@ export default function App() {
       <DetailModal
         message={selectedMessage}
         onClose={() => setSelectedMessage(null)}
+      />
+
+      <SelfLetterModal
+        letter={selectedSelfLetter}
+        onClose={() => setSelectedSelfLetter(null)}
       />
 
       <Toaster

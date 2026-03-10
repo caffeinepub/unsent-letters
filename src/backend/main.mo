@@ -6,9 +6,9 @@ import Time "mo:core/Time";
 import Int "mo:core/Int";
 import Array "mo:core/Array";
 import Order "mo:core/Order";
-import Migration "migration";
 
-(with migration = Migration.run)
+
+
 actor {
   type Message = {
     id : Nat;
